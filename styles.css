@@ -14,8 +14,24 @@ body {
 }
 
 .slidebar {
-    border: 5px solid black;
     width: 600px;
+    margin: 50px;
     
+}
+
+.status {
+    color: rgb(201, 201, 201);
+    background-color: rgb(39, 21, 21);
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 30px;
+
+
+}
+
+.value {
+    margin-bottom: 10px;
+    text-align: center;
+
     
 }

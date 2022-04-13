@@ -1,24 +1,69 @@
-const container = document.querySelector(".slidebar");
+/***********************************
+ * DEFAULT SLIDEBAR
+ */ 
+  
+const containerDefault = document.querySelector(".default-slidebar");
 
-const handleHoverStyles = {
-    backgroundColor: "blue"
+
+createDualRangeSlideBar({
+    containerElem: containerDefault
+})
+
+
+
+/***********************************
+ * CUSTOMIZED SLIDEBAR
+ */
+const containerCustomized = document.querySelector(".customized-slidebar");
+const leftValueDisplay = document.querySelector(".left-value");
+const rightValueDisplay = document.querySelector(".right-value");
+
+const changeListenerCustomizedSlideBar = (value) => {
+    console.log("Customized Slidebar: ", value);
 }
 
-const dualRangeSlidebar = createDualRangeSlideBar({
-    containerElem: container,
-    // wrapperStyles: wrapperStyles,
-    // progressBarStyles: progressBarStyles,
-    // handleStyles: handleStyles,
-    min: 20,
-    max: 100,
-    step: 1,
+const wrapperStyles = {
+    borderRadius: "10px",
+    boxShadow: "0 0 3px black"
+}
+
+const wrapperHoverStyles = {
+    boxShadow: "0 0 6px black"
+}
+
+const progressBarStyles = {
+    backgroundColor: "rgb(31, 78, 150)"
+}
+
+const handleStyle = {
+    backgroundColor: "rgb(45, 179, 41)"
+}
+
+
+createDualRangeSlideBar({
+    containerElem: containerCustomized,
+    minUserDefined: 15,
+    maxUserDefined: 200,
+    stepUserDefined: 2,
+    wrapperStyles: wrapperStyles,
+    wrapperHoverStyles: wrapperHoverStyles,
+    progressBarStyles: progressBarStyles,
+    handleLeftStyles: handleStyle,
+    handleRightStyles: handleStyle,
+    leftValueDisplayUserDefined: leftValueDisplay,
+    rightValueDisplayUserDefined: rightValueDisplay,
+    changeListener: changeListenerCustomizedSlideBar
 });
 
-function createDualRangeSlideBar({ containerElem, wrapperStyles, wrapperHoverStyles, 
+function createDualRangeSlideBar({ containerElem, 
+                                    leftValueDisplayUserDefined, rightValueDisplayUserDefined, 
+                                    wrapperStyles, wrapperHoverStyles, 
                                     progressBarStyles, progressBarHoverStyles,
                                     handleLeftStyles, handleLeftHoverStyles, 
                                     handleRightStyles, handleRightHoverStyles,
-                                    min, max, step}) {
+                                    minUserDefined, maxUserDefined, stepUserDefined,
+                                    valueLeftUserDefined, valueRightUserDefined,
+                                    changeListener}) {
     
     
     /*******************************************************
@@ -33,23 +78,32 @@ function createDualRangeSlideBar({ containerElem, wrapperStyles, wrapperHoverSty
         userDefinedHandleLeftHoverStyle = handleLeftHoverStyles? handleLeftHoverStyles: {},
         userDefinedHandleRightStyle = handleRightStyles? handleRightStyles: {},
         userDefinedHandleRightHoverStyle = handleRightHoverStyles? handleRightHoverStyles: {};
-        
-    let Wrapper, ProgressBar, HandleLeft, HandleRight;
+    
+
+    const min = (minUserDefined && minUserDefined < maxUserDefined)? minUserDefined : 0,
+            max = (maxUserDefined && minUserDefined < maxUserDefined)? maxUserDefined: 100,
+            step = (stepUserDefined && stepUserDefined > 0)? stepUserDefined: 1,
+            numSteps = Math.floor((max - min)/step);
+
+
+    let valueLeft = (valueLeftUserDefined && valueLeftUserDefined <= valueRightUserDefine - step)? valueLeftUserDefined : Math.floor(numSteps*0.2),
+            valueRight = valueRightUserDefined? valueRightUserDefined : Math.floor(numSteps*0.7);
+
+    let Wrapper, ProgressBar, HandleLeft, HandleRight, leftValueDisplay, rightValueDisplay;
     
     
     const defaultWrapperStyle = {
         position: "relative",
         width: "100%",
-        height: "20px"
+        height: "20px",
+        border: "5px solid black"
     };
 
     const defaultWrapperHoverStyle = {};
 
     const defaultProgressBarStyle = {
         position: "absolute",
-        left: "10%",
         backgroundColor: "rgb(31, 102, 102)",
-        width: "50%",
         height: "100%"
     };
 
@@ -57,22 +111,31 @@ function createDualRangeSlideBar({ containerElem, wrapperStyles, wrapperHoverSty
 
     const defaultHandleStyle = {
         position: "absolute",
-        width: "40px",
-        height: "40px",
+        
+        width: "35px",
+        height: "35px",
         borderRadius: "50%",
         backgroundColor: "rgb(100, 11, 11)",
         boxShadow: "0 0 2px black",
-        cursor: "pointer"
+        cursor: "pointer",
+        zIndex: "100000",
+
+        display: "grid",
+        justifyContent: "center",
+        alignItems: "center",
+        color: "white",
+        fontSize: "20px"
+
     };
 
     const defaultHandleHoverStyle = {
         boxShadow: "0 0 6px black",
-        backgroundColor: "rgb(165, 18, 18)"
+        backgroundColor: "rgb(165, 18, 18)",
+        zIndex: "100001"
     };
 
-
     const defaultHandleLeftStyle = {
-        left: "0",
+        left: "0px",
         transform: "translateX(-50%) translateY(-10px)"
     }
 
@@ -86,20 +149,17 @@ function createDualRangeSlideBar({ containerElem, wrapperStyles, wrapperHoverSty
 
     const defaultHandleRightHoverStyle = {};
 
-    /****************************************************
-     * Private
-     */
     
-        /***********************************************/
-        //UTILITIES
-        /**********************************************/
+    
+    /***********************************************/
+    //UTILITIES
+    /**********************************************/
     const createDiv = (className) => {
         const div = document.createElement('div');
         div.classList.add(className);
 
         return div;
     }
-
         
     function addStylesTo(elem, styles) {
         for(const style in styles) {
@@ -115,10 +175,12 @@ function createDualRangeSlideBar({ containerElem, wrapperStyles, wrapperHoverSty
     }
     
 
+    const fromValueToPercent = (val) => (val - min)*100/(max - min); 
 
-        /***********************************************/
-        //PRIVATE METHODS
-        /**********************************************/
+    
+    /***********************************************/
+    //METHODS
+    /**********************************************/
 
     function createMainElements() {
         const Wrapper = createDiv("wrapper");
@@ -186,6 +248,8 @@ function createDualRangeSlideBar({ containerElem, wrapperStyles, wrapperHoverSty
 
             addStylesTo(ProgressBar, defaultProgressBarStyle);
             addStylesTo(ProgressBar, userDefinedProgressBarStyle);
+
+            setProgressBarValues();
     
         });
 
@@ -221,15 +285,114 @@ function createDualRangeSlideBar({ containerElem, wrapperStyles, wrapperHoverSty
         });
     }
 
+    const fromPosXToPercent = (posX) => {
+        const WrapperBox = Wrapper.getBoundingClientRect();
+        const wrapperLength = WrapperBox.right - WrapperBox.left;
+
+        return (posX - WrapperBox.left)*100/wrapperLength;
+    }
+
+    const fromPercentToValue = (percent) => {
+        const range = max - min,
+                offset = range*percent/100;
+
+        return min + offset;
+    }
+
+    function roundValue(value) {
+        const currentStep = Math.floor((value - min)/step);
+
+        return min + currentStep*step;
+    }   
+    
+    
+    function addDraggingFeature(Handle, handleSide){
+        
+        Handle.onmousedown = (e) => {                        
+            
+            const onMouseMove = (mouseMoveEvent)  => {
+                const percent = fromPosXToPercent(mouseMoveEvent.clientX);
+                if(handleSide === 'LEFT'){
+                    let value = fromPercentToValue(percent);
+                    value = roundValue(value);
+
+                    if(value >= min && value <= valueRight - step){
+                        valueLeft = value;
+                        ProgressBar.style.left = percent + "%";
+                    }
+                }
+                else if(handleSide === "RIGHT"){
+                    
+                    let value = fromPercentToValue(percent);
+                    value = roundValue(value);
+
+                    if(value <= max && value >= valueLeft + step){
+                        valueRight = value;
+                        ProgressBar.style.right = (100 - percent) + "%";
+                    }
+                
+                }
+
+                setValuesDisplay();
+
+                changeListener({
+                    valueLeft: valueLeft,
+                    valueRight: valueRight
+                });
+
+
+                
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+
+            document.onmouseup = () => {
+                document.removeEventListener('mousemove', onMouseMove);
+                Handle.onmouseup = null;
+            }
+
+            Handle.ondragstart = () => false;
+
+        }
+    }
+
+    
+    function setProgressBarValues() {
+        const percentLeft = fromValueToPercent(valueLeft);
+        ProgressBar.style.left = percentLeft + "%";
+
+
+        const percentRight = fromValueToPercent(valueRight);
+        ProgressBar.style.right = (100 - percentRight) + "%";
+    }
+
+
+    function setValuesDisplay() {
+        leftValueDisplay.innerText = valueLeft;
+        rightValueDisplay.innerText = valueRight;
+    }
 
     function init() {
         [Wrapper, ProgressBar, HandleLeft, HandleRight] = createMainElements();
+
+        leftValueDisplay = leftValueDisplayUserDefined? leftValueDisplayUserDefined : HandleLeft;
+        rightValueDisplay = rightValueDisplayUserDefined? rightValueDisplayUserDefined : HandleRight;
 
         assembleElements();
         addElementsToContainer();
 
         addStyles();
         addHoverStyles();
+
+        
+        setProgressBarValues();
+
+        addDraggingFeature(HandleLeft, "LEFT");
+        addDraggingFeature(HandleRight, "RIGHT");
+
+        setValuesDisplay();
+
+ 
     }
 
 
@@ -239,9 +402,6 @@ function createDualRangeSlideBar({ containerElem, wrapperStyles, wrapperHoverSty
 
 
 
-    /****************************************************
-     * Public
-     */
     
     
 
@@ -253,7 +413,5 @@ function createDualRangeSlideBar({ containerElem, wrapperStyles, wrapperHoverSty
 
 
 
-    return {
 
-    }
 }
