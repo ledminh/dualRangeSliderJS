@@ -1,8 +1,14 @@
 # Dual Range Slider JS
 
-My attempt to create a dual range slider in vanila JS.
+Dual range slider in vanila JS.
 
-API
+This slider has two handles, left and right. User can use mouse to drag these two handles to adjust left and right value.
+
+## USAGE
+
+Download file `dualRangeSlideBar.js` in this repo then using `<script>` tag to add it to your html file before your own js file.
+
+## API
 
 `createDualRangeSlideBar(options)`
 
